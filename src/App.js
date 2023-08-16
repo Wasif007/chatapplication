@@ -3,7 +3,7 @@ import { Box, VStack, Container, Button, Input, HStack } from "@chakra-ui/react"
 import MessageComp from "./Components/MessageComp";
 import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup, signOut} from "firebase/auth";
 import app from "./Components/firebase"
-import {addDoc, collection, getDoc,getFirestore} from "firebase/firestore"
+import {addDoc, orderBy,query,collection,getFirestore, serverTimestamp,onSnapshot} from "firebase/firestore"
 
 //Creating auth with app as argument from firbase file
 const auth=getAuth(app);
@@ -26,8 +26,14 @@ function App() {
   //Setting auth once mounted component
   useEffect(() => {
     const settingAuth=onAuthStateChanged(auth,(data)=>{
-      console.log(data);
+     
       setUser(data);
+    })
+    onSnapshot(collection(getFireeStore,"Messages"),(snap)=>{
+     setMessageArray( snap.docs.map((item)=>{
+        let id =item.id;
+        return {id,...item.data()};
+      }));
     })
     return()=>{
       settingAuth();
@@ -36,7 +42,11 @@ function App() {
   }, []);
   //Use state hook used to set user once data is mounted via useEffect
  const [user,setUser]=useState(false);
-
+ //Setting message useState as it is typed in app
+ const [messageTyped,setMessageTyped]=useState("");
+ //Messages array to be displayed in the tag
+ const [messageArray,setMessageArray]=useState([]);
+//Query for Ascending order of collection from firebase
 
  //Submit of message function it will be used to save message in firebase to show chat
 const onSubmitHandlerFunction=async(e)=>{
@@ -44,11 +54,13 @@ const onSubmitHandlerFunction=async(e)=>{
 
   try {
     await addDoc(collection(getFireeStore,"Messages"),{
-    text:"Wasif",
+    text:messageTyped,
     uid:user.uid,
     url:user.photoURL,
+    createdAt:serverTimestamp()
     
   });
+  setMessageTyped("");
   } catch (error) {
     alert(error);
   }
@@ -66,13 +78,17 @@ const onSubmitHandlerFunction=async(e)=>{
             <Button w={"full"} onClick={loggingOutFunction} colorScheme={"red"}>Sign Out</Button>
             {/* This Vstack is for messaging portion */}
             <VStack width={"full"} height={"full"} overflowY={"auto"}>
-            <MessageComp message={"Hello"}/>
-              <MessageComp message={"Hello"} user="me"/>
-              <MessageComp message={"Hello"}/>
+              {
+                messageArray.map((item)=>(<MessageComp key={item.id}
+                text={item.text} uid={item.uid===user.uid?"me":"other"} url={item.url}
+                />))
+              }
+            
+             
             </VStack>
             <form style={{ width: "99%" }} onSubmit={onSubmitHandlerFunction}>
               <HStack>
-                <Input bg={"white"} placeholder="Enter a Message..." />
+                <Input bg={"white"} value={messageTyped} onChange={(e)=>(setMessageTyped(e.target.value))}placeholder="Enter a Message..." />
                 <Button type="submit" colorScheme={"purple"}>Send</Button>
               </HStack>
             </form>
