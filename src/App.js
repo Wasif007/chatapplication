@@ -3,9 +3,13 @@ import { Box, VStack, Container, Button, Input, HStack } from "@chakra-ui/react"
 import MessageComp from "./Components/MessageComp";
 import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup, signOut} from "firebase/auth";
 import app from "./Components/firebase"
+import {addDoc, collection, getDoc,getFirestore} from "firebase/firestore"
 
 //Creating auth with app as argument from firbase file
 const auth=getAuth(app);
+//Getting FireStore
+const getFireeStore=getFirestore(app);
+
 //logging in function
 const loggingInFunction=()=>{
   //Provider
@@ -19,8 +23,10 @@ const loggingOutFunction=()=>{
   signOut(auth);
 }
 function App() {
+  //Setting auth once mounted component
   useEffect(() => {
     const settingAuth=onAuthStateChanged(auth,(data)=>{
+      console.log(data);
       setUser(data);
     })
     return()=>{
@@ -28,7 +34,26 @@ function App() {
     }
 
   }, []);
+  //Use state hook used to set user once data is mounted via useEffect
  const [user,setUser]=useState(false);
+
+
+ //Submit of message function it will be used to save message in firebase to show chat
+const onSubmitHandlerFunction=async(e)=>{
+  e.preventDefault();
+
+  try {
+    await addDoc(collection(getFireeStore,"Messages"),{
+    text:"Wasif",
+    uid:user.uid,
+    url:user.photoURL,
+    
+  });
+  } catch (error) {
+    alert(error);
+  }
+  
+  }
   return (
     // Box with background Red
     <Box bg={"red.100"}>
@@ -45,7 +70,7 @@ function App() {
               <MessageComp message={"Hello"} user="me"/>
               <MessageComp message={"Hello"}/>
             </VStack>
-            <form style={{ width: "99%" }}>
+            <form style={{ width: "99%" }} onSubmit={onSubmitHandlerFunction}>
               <HStack>
                 <Input bg={"white"} placeholder="Enter a Message..." />
                 <Button type="submit" colorScheme={"purple"}>Send</Button>
