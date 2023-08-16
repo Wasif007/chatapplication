@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Box, VStack, Container, Button, Input, HStack } from "@chakra-ui/react";
 import MessageComp from "./Components/MessageComp";
-import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup} from "firebase/auth";
+import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup, signOut} from "firebase/auth";
 import app from "./Components/firebase"
 
 //Creating auth with app as argument from firbase file
 const auth=getAuth(app);
+//logging in function
 const loggingInFunction=()=>{
   //Provider
   const provider=new GoogleAuthProvider();
@@ -13,7 +14,10 @@ const loggingInFunction=()=>{
   signInWithPopup(auth,provider);
 }
 
-
+//logging out function
+const loggingOutFunction=()=>{
+  signOut(auth);
+}
 function App() {
   useEffect(() => {
     const settingAuth=onAuthStateChanged(auth,(data)=>{
@@ -34,7 +38,7 @@ function App() {
         <Container h={"100vh"} bg={"white"}>
           {/* One Vstack is for logout and messages bar */}
           <VStack h={"full"} padding={"2"}>
-            <Button w={"full"} colorScheme={"red"}>Sign Out</Button>
+            <Button w={"full"} onClick={loggingOutFunction} colorScheme={"red"}>Sign Out</Button>
             {/* This Vstack is for messaging portion */}
             <VStack width={"full"} height={"full"} overflowY={"auto"}>
             <MessageComp message={"Hello"}/>
