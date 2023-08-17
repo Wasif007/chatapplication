@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, VStack, Container, Button, Input, HStack } from "@chakra-ui/react";
 import MessageComp from "./Components/MessageComp";
 import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup, signOut} from "firebase/auth";
@@ -23,13 +23,24 @@ const loggingOutFunction=()=>{
   signOut(auth);
 }
 function App() {
+    //Use state hook used to set user once data is mounted via useEffect
+ const [user,setUser]=useState(false);
+ //Setting message useState as it is typed in app
+ const [messageTyped,setMessageTyped]=useState("");
+ //Messages array to be displayed in the tag
+ const [messageArray,setMessageArray]=useState([]);
+//Query for Ascending order of collection from firebase
+const queryForSorting=query(collection(getFireeStore,"Messages"),orderBy("createdAt","asc"));
+//UseRef used to add smooth scroll
+const useReferenceUsed=useRef(null);
+
   //Setting auth once mounted component
   useEffect(() => {
     const settingAuth=onAuthStateChanged(auth,(data)=>{
      
       setUser(data);
     })
-    onSnapshot(collection(getFireeStore,"Messages"),(snap)=>{
+  const settingMessageArrayFun=  onSnapshot(queryForSorting,(snap)=>{
      setMessageArray( snap.docs.map((item)=>{
         let id =item.id;
         return {id,...item.data()};
@@ -37,30 +48,29 @@ function App() {
     })
     return()=>{
       settingAuth();
+      settingMessageArrayFun();
     }
 
   }, []);
-  //Use state hook used to set user once data is mounted via useEffect
- const [user,setUser]=useState(false);
- //Setting message useState as it is typed in app
- const [messageTyped,setMessageTyped]=useState("");
- //Messages array to be displayed in the tag
- const [messageArray,setMessageArray]=useState([]);
-//Query for Ascending order of collection from firebase
 
  //Submit of message function it will be used to save message in firebase to show chat
 const onSubmitHandlerFunction=async(e)=>{
+  //Not reloading page
   e.preventDefault();
 
   try {
+    //Setting message typed save in firestore databases
     await addDoc(collection(getFireeStore,"Messages"),{
+      //Setting text uid url and time according to user who logged in
     text:messageTyped,
     uid:user.uid,
     url:user.photoURL,
     createdAt:serverTimestamp()
     
   });
+  //Setting input field equal to Empty after message is submitted
   setMessageTyped("");
+  useReferenceUsed.current.scrollIntoView({behaviour:"smooth"});
   } catch (error) {
     alert(error);
   }
@@ -84,8 +94,9 @@ const onSubmitHandlerFunction=async(e)=>{
                 />))
               }
             
-             
+               <div ref={useReferenceUsed}></div>
             </VStack>
+          
             <form style={{ width: "99%" }} onSubmit={onSubmitHandlerFunction}>
               <HStack>
                 <Input bg={"white"} value={messageTyped} onChange={(e)=>(setMessageTyped(e.target.value))}placeholder="Enter a Message..." />
