@@ -88,7 +88,8 @@ const onSubmitHandlerFunction=async(e)=>{
           <VStack h={"full"} padding={"2"}>
             <Button w={"full"} onClick={loggingOutFunction} colorScheme={"red"}>Sign Out</Button>
             {/* This Vstack is for messaging portion */}
-            <VStack width={"full"} height={"full"} overflowY={"auto"}>
+            <VStack width={"full"} height={"full"} overflowY={"auto"}   css={{  "&::-webkit-scrollbar": {display: "none",},}}
+              >
               {
                 messageArray.map((item)=>(<MessageComp key={item.id}
                 text={item.text} uid={item.uid===user.uid?"me":"other"} url={item.url}
