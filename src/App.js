@@ -29,13 +29,14 @@ function App() {
  const [messageTyped,setMessageTyped]=useState("");
  //Messages array to be displayed in the tag
  const [messageArray,setMessageArray]=useState([]);
-//Query for Ascending order of collection from firebase
-const queryForSorting=query(collection(getFireeStore,"Messages"),orderBy("createdAt","asc"));
+
 //UseRef used to add smooth scroll
 const useReferenceUsed=useRef(null);
 
   //Setting auth once mounted component
   useEffect(() => {
+    //Query for Ascending order of collection from firebase
+const queryForSorting=query(collection(getFireeStore,"Messages"),orderBy("createdAt","asc"));
     const settingAuth=onAuthStateChanged(auth,(data)=>{
      
       setUser(data);
